@@ -1,10 +1,9 @@
 package service
 
 import (
-	"fmt"
 	"strings"
 
-	"github.com/Southclaws/uptime-girl/dockerwatch"
+	"github.com/Southclaws/dockwatch"
 	"github.com/docker/docker/client"
 )
 
@@ -19,6 +18,7 @@ type Config struct {
 	APIKey string
 }
 
+// App stores app state
 type App struct {
 	docker *client.Client
 }
@@ -37,37 +37,46 @@ func Initialise(config Config) (app *App, err error) {
 
 // Start runs the service and blocks until failure
 func (app *App) Start() (err error) {
-	tasks := make(chan string)
+	w := dockwatch.New(app.docker)
 
-	dockerwatch.New(docker, LabelMonitorEndpoint, func(value string) {
-		if value == "" {
-			return
-		}
-
-		tasks <- value
-	})
-	dockerwatch.New(docker, LabelMonitorTraefik, func(value string) {
-		if value == "" {
-			return
-		}
-
-		if traefik, ok := container.Labels[LabelMonitorTraefik]; ok && traefik == "true" {
-			hostRules, ok := container.Labels["traefik.frontend.rule"]
-			if !ok {
-				return
+	f := func() (e error) {
+		select {
+		case evt := <-w.Events:
+			endpoint := app.react(evt)
+			if evt.Type == dockwatch.EventTypeCreate {
+				// create monitor
+			} else if evt.Type == dockwatch.EventTypeDelete {
+				// delete monitor
 			}
-			endpoints := strings.Split(strings.TrimPrefix(hostRules, "Host:"), ",")
-			if len(endpoints) == 0 {
-				return
-			}
-
-			tasks <- value
+		case e = <-w.Errors:
 		}
-	})
-
-	for task := range tasks {
-		fmt.Println(task)
+		return
 	}
 
+	for {
+		err = f()
+		if err != nil {
+			break
+		}
+	}
+
+	return
+}
+
+func (app *App) react(e dockwatch.Event) (endpoint string) {
+	if endpoint, ok := e.Container.Labels[LabelMonitorEndpoint]; ok {
+		return endpoint
+	}
+	if traefik, ok := e.Container.Labels[LabelMonitorTraefik]; ok && traefik == "true" {
+		hostRules, ok := e.Container.Labels["traefik.frontend.rule"]
+		if !ok {
+			return
+		}
+		endpoints := strings.Split(strings.TrimPrefix(hostRules, "Host:"), ",")
+		if len(endpoints) == 0 {
+			return
+		}
+		return endpoints[0]
+	}
 	return
 }
