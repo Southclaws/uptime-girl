@@ -15,7 +15,7 @@ const (
 
 // Config stores configuration for loading from the environment
 type Config struct {
-	APIKey string
+	UptimeRobotKey string
 }
 
 // App stores app state

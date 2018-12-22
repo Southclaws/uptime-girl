@@ -1,6 +1,8 @@
 package uptimerobot
 
 import (
+	"net/url"
+
 	"gopkg.in/resty.v1"
 )
 
@@ -11,21 +13,56 @@ type Client struct {
 }
 
 // New creates a new UptimeRobot client with the given API key.
-func New(key string) (client *Client, err error) {
-	client = &Client{
+func New(key string) (client *Client) {
+	return &Client{
 		r: resty.New().
 			SetHostURL("https://api.uptimerobot.com/v2/").
 			SetHeader("content-type", "application/x-www-form-urlencoded").
 			SetHeader("cache-control", "no-cache"),
 		key: key,
 	}
-
-	return
 }
 
-// Request returns a pre-made request with an API key and the given body string.
-func (c *Client) Request(endpoint string, body string) (response *resty.Response, err error) {
-	// marshall body as url.Values
-	// inject api_key field
-	return c.r.R().SetBody(body).Post(endpoint)
+// Response is returned by all API calls
+type Response struct {
+	Stat       string
+	Pagination struct {
+		Offset int
+		Limit  int
+		Total  int
+	}
+	Monitors []Monitor
+}
+
+// Monitor represents a single uptime monitor
+type Monitor struct {
+	ID             float64
+	URL            string
+	Port           string
+	Status         float64
+	Interval       float64
+	FriendlyName   string
+	CreateDatetime float64
+	Type           float64
+	KeywordValue   string
+	KeywordType    string
+	HTTPUsername   string
+	HTTPPassword   string
+	SubType        string
+}
+
+// GetMonitors returns all monitors for an account
+func (c *Client) GetMonitors() (monitors []Monitor, err error) {
+	var r Response
+	_, err = c.r.R().SetBody(c.withAuth(url.Values{})).SetResult(&r).Post("getMonitors")
+	if err != nil {
+		return
+	}
+
+	return r.Monitors, nil
+}
+
+func (c Client) withAuth(params url.Values) (urlEncoded string) {
+	params.Set("api_key", c.key)
+	return params.Encode()
 }
