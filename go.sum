@@ -1,6 +1,7 @@
 github.com/Microsoft/go-winio v0.4.11/go.mod h1:VhR8bwka0BXejwEJY73c50VrPtXAaKcyvVC4A4RozmA=
 github.com/Southclaws/dockwatch v1.0.0 h1:EqwPu2LlS2s6OdyMfCg1vN/An7MVOtzxSW73ufKX3FA=
 github.com/Southclaws/dockwatch v1.0.0/go.mod h1:BFX4P7zXovuDnrisZxV6xGs4lH9sahymzasJftOb0f0=
+github.com/Southclaws/qstring v1.0.0/go.mod h1:3KvScfejPnEaP1scQndt0CXDTfQKDdUqbRSJxSAPZu4=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/docker/distribution v2.7.0+incompatible h1:neUDAlf3wX6Ml4HdqTrbcOHXtfRN0TFIwt6YFL7N9RU=
 github.com/docker/distribution v2.7.0+incompatible/go.mod h1:J2gT2udsDAN96Uj4KfcMRqY0/ypR+oyYUYmja8H+y+w=
